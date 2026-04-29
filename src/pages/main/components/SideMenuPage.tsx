@@ -13,38 +13,38 @@ const SideBarMenuPage = ({ ...rest }: React.ComponentProps<typeof Sidebar>) => {
   const handleMenuClick = (path: string) => {
     navigate(path);
   };
-  const menuItems = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      path: RouterKeys.DASHBOARD,
-    },
-    {
-      id: "dashboard-alt",
-      label: "Dashboard",
-      icon: Box,
-      path: "#",
-    },
-    {
-      id: "lifecycle",
-      label: "Lifecycle",
-      icon: Box,
-      path: "#",
-    },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: Box,
-      path: "#",
-    },
-    {
-      id: "projects",
-      label: "Projects",
-      icon: Box,
-      path: "#",
-    },
-  ];
+const menuItems = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    path: RouterKeys.DASHBOARD,
+  },
+  {
+    id: "dashboard-alt",
+    label: "Dashboard",
+    icon: Box,
+    path: "#",
+  },
+  {
+    id: "lifecycle",
+    label: "Lifecycle",
+    icon: Box,
+    path: "#",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: Box,
+    path: "#",
+  },
+  {
+    id: "projects",
+    label: "Projects",
+    icon: Box,
+    path: "#",
+  },
+];
 
   return (
     <SideBarMenu

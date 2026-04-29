@@ -1,5 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
-import { Middleware } from '@reduxjs/toolkit';
+import type { Middleware } from '@reduxjs/toolkit';
 
 export const logoutAction = createAction('LOGOUT');
 

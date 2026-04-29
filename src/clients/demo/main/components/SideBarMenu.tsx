@@ -109,7 +109,7 @@ const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppS
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{userDetails?.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {userDetails?.email} arun.prajapati@punon.in
+                      {userDetails?.email} prathamesh@punon.in
                     </span>
                   </div>
                 </SidebarMenuButton>

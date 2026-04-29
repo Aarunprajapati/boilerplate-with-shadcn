@@ -1,14 +1,19 @@
 import BaseThemeProvider from '@/config/BaseThemeProvider'
 import './styles.scss'
 
-const theme = {
-  client: 'default',
-  mode: 'light' as const,
+type ThemeProviderProps = {
+  children: React.ReactNode
+  className?: string
 }
 
-const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+const theme = {
+  client: 'default',
+  mode: 'dark' as const,
+}
+
+const ThemeProvider = ({ children, className }: ThemeProviderProps) => {
   return (
-    <BaseThemeProvider client={theme.client} mode={theme.mode}>
+    <BaseThemeProvider className={className} client={theme.client} mode={theme.mode}>
       {children}
     </BaseThemeProvider>
   )
