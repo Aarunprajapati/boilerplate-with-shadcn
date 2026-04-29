@@ -9,13 +9,12 @@ type ThemeProviderProps = {
 }
 
 const theme = {
-  client: 'demo',
   mode: 'dark',
 } as const
 
 const ThemeProvider = ({ children, className }: ThemeProviderProps) => {
   return (
-    <BaseThemeProvider className={className} client={theme.client} mode={theme.mode}>
+    <BaseThemeProvider className={className} mode={theme.mode}>
       {children}
     </BaseThemeProvider>
   )

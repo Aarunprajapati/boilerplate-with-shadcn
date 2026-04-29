@@ -16,12 +16,7 @@ if (token && pathname == `/${RouterKeys.COMMON.LOGIN}`) {
     return <Navigate to={`/${RouterKeys.COMMON.LOGIN}`} replace />;
   }
 
-  return (
-    <>
-      <Outlet />
-      {/* {token && <TriggerHotKeys />} */}
-    </>
-  );
+  return <Outlet />
 };
 
 export default AuthWrapper;

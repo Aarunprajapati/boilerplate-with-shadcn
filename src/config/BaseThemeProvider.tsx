@@ -26,7 +26,6 @@ const ThemeModeContext = createContext<ThemeModeContextValue | null>(null)
 type Props = {
   children: ReactNode
   className?: string
-  client: string
   mode: ThemeMode
 }
 
@@ -43,13 +42,13 @@ const getStoredThemeMode = (fallback: ThemeMode): ThemeMode => {
   }
 }
 
-const BaseThemeProvider = ({ children, className, client, mode }: Props) => {
+const BaseThemeProvider = ({ children, className, mode }: Props) => {
   const [activeMode, setActiveMode] = useState<ThemeMode>(() => getStoredThemeMode(mode))
 
   useLayoutEffect(() => {
     const root = document.documentElement
 
-    root.dataset.client = client
+    // root.dataset.client = client
     root.classList.toggle('dark', activeMode === 'dark')
     root.style.colorScheme = activeMode
 
@@ -58,7 +57,7 @@ const BaseThemeProvider = ({ children, className, client, mode }: Props) => {
     } catch {
       // Ignore storage failures; DOM theme state still updates.
     }
-  }, [activeMode, client])
+  }, [activeMode])
 
   const setMode = useCallback((nextMode: ThemeMode) => {
     setActiveMode(nextMode)
