@@ -7,7 +7,7 @@ type ThemeProviderProps = {
 }
 
 const theme = {
-  mode: 'dark' as const,
+  mode: 'light' as const,
 }
 
 const ThemeProvider = ({ children, className }: ThemeProviderProps) => {

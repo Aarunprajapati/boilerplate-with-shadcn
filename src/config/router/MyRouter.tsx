@@ -1,6 +1,6 @@
 import AuthWrapper from '@/components/common/authWrapper/AuthWrapper';
 import NotFound from '@/components/common/notFound/NotFound';
-import { DashboardPage, LoginPage, MainPage } from '@/pages';
+import { DashboardPage, LoginPage, MainPage, UserPage } from '@/pages';
 import { createBrowserRouter } from 'react-router-dom';
 import { RouterKeys } from './RouterKeys';
 
@@ -17,8 +17,13 @@ export const routes = [
         children:[
           {
              index: true,
-             path:"/",
+             path:RouterKeys.DASHBOARD,
             element: <DashboardPage/>,
+      
+          },
+           {
+             path:RouterKeys.USER,
+            element: <UserPage/>,
       
           },
         ]

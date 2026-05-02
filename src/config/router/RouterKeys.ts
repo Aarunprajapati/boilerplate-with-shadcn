@@ -13,8 +13,8 @@ export const RouterKeys = {
     LOGIN: 'login',
   },
 
-  DASHBOARD: '/',
+  DASHBOARD: '',
 
-  
+  USER: 'user',
   
 };

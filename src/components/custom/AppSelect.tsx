@@ -104,8 +104,8 @@ export const AppSelect: React.FC<AppSelectProps> = (props) => {
 
   const selectedValues: (string | number)[] = isControlled
     ? normalise(
-        props.value as SingleProps["value"] | MultipleProps["value"]
-      )
+      props.value as SingleProps["value"] | MultipleProps["value"]
+    )
     : internalValues;
 
   const [open, setOpen] = React.useState(false);
@@ -270,7 +270,7 @@ export const AppSelect: React.FC<AppSelectProps> = (props) => {
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-(--radix-popover-trigger-width) p-0"
         align="start"
       >
         <Command
@@ -295,7 +295,12 @@ export const AppSelect: React.FC<AppSelectProps> = (props) => {
                     value={opt.label}
                     disabled={opt.disabled}
                     onSelect={() => handleSelect(opt)}
-                    className="cursor-pointer"
+                    className={cn(
+                      "cursor-pointer rounded-sm",
+                      "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground",
+                      "hover:bg-accent hover:text-accent-foreground",
+                      "transition-colors"
+                    )}
                   >
                     <Check
                       className={cn(

@@ -1,6 +1,6 @@
 import { getUserDetailsFromToken } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { Box, LayoutDashboard } from "lucide-react";
+import {  LayoutDashboard, User } from "lucide-react";
 import { RouterKeys } from "@/config/router/RouterKeys";
 import { SideBarMenu } from "@/clients";
 import type { Sidebar } from "@/components/ui/sidebar";
@@ -22,28 +22,10 @@ const menuItems = [
   },
   {
     id: "dashboard-alt",
-    label: "Dashboard",
-    icon: Box,
-    path: "#",
-  },
-  {
-    id: "lifecycle",
-    label: "Lifecycle",
-    icon: Box,
-    path: "#",
-  },
-  {
-    id: "analytics",
-    label: "Analytics",
-    icon: Box,
-    path: "#",
-  },
-  {
-    id: "projects",
-    label: "Projects",
-    icon: Box,
-    path: "#",
-  },
+    label: "User",
+    icon: User,
+    path: RouterKeys.USER,
+  }
 ];
 
   return (

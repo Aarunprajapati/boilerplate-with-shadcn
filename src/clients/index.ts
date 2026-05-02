@@ -15,3 +15,5 @@ export const Dashboardlayout = isCustomOrg ? lazy(() => import(`./${org}/dashboa
 export const LoginLayout = isCustomOrg ? lazy(() => import(`./${org}/login/LoginLayout`)) : lazy(() => import(`./default/login/DefaultLoginLayout`))
 
 export const ThemeProvider = isCustomOrg ? lazy(() => import(`./${org}/styles/ThemeProvider`)) : lazy(() => import(`./default/styles/ThemeProvider`))
+
+export const UserLayout = isCustomOrg ? lazy(() => import(`./${org}/user/UserLayout`)) : lazy(() => import(`./default/user/DefaultUserLayout`))

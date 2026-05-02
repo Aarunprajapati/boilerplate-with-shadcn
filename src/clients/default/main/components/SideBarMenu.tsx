@@ -68,7 +68,9 @@ const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppS
             <SidebarMenu>
               {menuItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.path
+                const isActive = pathname === `/${item.path}`
+
+                console.log(pathname, item.path, isActive)
 
                 return (
                   <SidebarMenuItem key={item.id} className='cursor-pointer!'>
@@ -78,7 +80,8 @@ const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppS
                       onClick={() => handleMenuClick(item.path)}
                       className={cn(
                         'w-full transition-colors',
-                        isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium '
+                        isActive &&
+                        "bg-sidebar-accent! text-sidebar-accent-foreground! font-medium shadow-md"
                       )}
                     >
                       <Icon className="size-4 shrink-0" />
