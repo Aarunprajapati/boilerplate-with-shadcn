@@ -55,15 +55,14 @@ const STATUS_VARIANT: Record<Employee["status"], "default" | "secondary" | "dest
 // ─────────────────────────────────────────────
 
 const columns: ColumnDef<Employee>[] = [
-  {
+   {
     accessorKey: "id",
     header: "ID",
     size: 60,
     minSize: 50,
-    enableSorting: true,
-    enableGrouping: false,
-    enableResizing: true,
-    // NOT editable — no meta.editable
+    enablePinning: true,
+    enableColumnFilter: false,
+    // NOT editable - no meta.editable
   },
   {
     accessorKey: "name",
@@ -73,8 +72,9 @@ const columns: ColumnDef<Employee>[] = [
     enableSorting: true,
     enableGrouping: false,
     enableResizing: true,
-    meta: { editable: true },         // ✅ column-wise editable
+    meta: { editable: false },         // ✅ column-wise editable
   },
+
   {
     accessorKey: "department",
     header: "Department",
@@ -146,6 +146,16 @@ const columns: ColumnDef<Employee>[] = [
 const DefaultUserLayout = () => {
   const [tableData, setTableData] = React.useState<Employee[]>(INITIAL_DATA)
   const [selected, setSelected]   = React.useState<Employee[]>([])
+  const paginatedData = React.useMemo(
+    () => ({
+      items: tableData,
+      page: 1,
+      pageSize: 5,
+      totalItems: tableData.length,
+      totalPages: Math.ceil(tableData.length / 5),
+    }),
+    [tableData],
+  )
 
   /**
    * onCellValueChange
@@ -162,50 +172,47 @@ const DefaultUserLayout = () => {
   }
 
   return (
-    // <div className="p-6 space-y-4">
-    //   <div>
-    //     <h1 className="text-2xl font-bold">Employee Directory</h1>
-    //     <p className="text-muted-foreground text-sm mt-1">
-    //       Click a <span className="text-primary/80">✎</span>-marked cell to edit it inline.
-    //       Use <strong>Group</strong> to group rows by department, status, or year.
-    //       Drag column edges to resize.
-    //     </p>
-    //   </div>
+    <div className="w-full min-w-0 space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold">Employee Directory</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Click a <span className="text-primary/80">✎</span>-marked cell to edit it inline.
+          Use <strong>Group</strong> to group rows by department, status, or year.
+          Drag column edges to resize.
+        </p>
+      </div>
 
-    //   {selected.length > 0 && (
-    //     <div className="rounded-md border p-3 bg-muted/30 text-sm">
-    //       <span className="font-semibold">Selected: </span>
-    //       {selected.map((e) => e.name).join(", ")}
-    //     </div>
-    //   )}
+      {selected.length > 0 && (
+        <div className="rounded-md border p-3 bg-muted/30 text-sm">
+          <span className="font-semibold">Selected: </span>
+          {selected.map((e) => e.name).join(", ")}
+        </div>
+      )}
 
-    //   <PaginatedGrid<Employee>
-    //     data={tableData}
-    //     columns={columns}
+      <PaginatedGrid<Employee>
+        data={paginatedData}
+        columns={columns}
+        heightRow={35}
 
-    //     // ── Inline editing (column-wise via meta.editable) ─────────────────
-    //     onCellValueChange={handleCellChange}
+        // ── Inline editing (column-wise via meta.editable) ─────────────────
+        onCellValueChange={handleCellChange}
 
-    //     // ── Row selection ─────────────────────────────────────────────────
-    //     onRowSelectionChange={setSelected}
+        // ── Row selection ─────────────────────────────────────────────────
+        // onRowSelectionChange={setSelected}
 
-    //     // ── Row grouping ──────────────────────────────────────────────────
-    //     enableGrouping={true}
-    //     groupableColumns={["department", "status", "joinedYear"]}
+        // ── Row grouping ──────────────────────────────────────────────────
+        enableGrouping={true}
+        groupableColumns={["department", "status", "joinedYear"]}
 
-    //     // ── Column resizing ───────────────────────────────────────────────
-    //     enableColumnResizing={true}
+        // ── Column resizing ───────────────────────────────────────────────
+        // enableColumnResizing={true}
 
-    //     // ── Pagination ────────────────────────────────────────────────────
-    //     defaultPageSize={5}
-    //     pageSizeOptions={[5, 10, 20]}
-
-    //     // ── Toolbar ───────────────────────────────────────────────────────
-    //     enableSearch={true}
-    //     enableColumnToggle={true}
-    //   />
-    // </div>
-    <div className="w-999 border h-10 bg-red-500"></div>
+        // ── Toolbar ───────────────────────────────────────────────────────
+        // enableSearch={true}
+        // enableColumnToggle={true}
+        enableColumnFilters
+      />
+    </div>
   )
 }
 

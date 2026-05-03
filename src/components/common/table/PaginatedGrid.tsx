@@ -47,6 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import TableWrapper from "@/components/common/table/TableWrapper"
 import {
   Pagination,
   PaginationContent,
@@ -63,6 +64,7 @@ import {
   ChevronUp,
   Columns,
   Group,
+  ListFilter,
   X,
 } from "lucide-react"
 
@@ -84,6 +86,16 @@ export interface PaginatedGridColumnMeta {
   editable?: boolean
 }
 
+export interface IPaginatedData<TItems> {
+  items: TItems
+  page?: number
+  pageSize?: number
+  totalPages?: number
+  totalItems?: number
+  totalCount?: number
+  total?: number
+}
+
 // Augment TanStack's ColumnMeta type so TypeScript is happy
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -98,7 +110,13 @@ declare module "@tanstack/react-table" {
 
 export interface PaginatedGridProps<TData extends object, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  data: TData[] | IPaginatedData<TData[]>
+  tableLoading?: boolean
+  heightRow?: number
+  widthRow?: number | string
+  showPagination?: boolean
+  removeBottomPadding?: boolean
+  onPaginationChange?: (page: number, pageSize: number) => void
   /**
    * Fired when an editable cell is committed.
    * @param rowIndex  Index in the original `data` array
@@ -114,9 +132,19 @@ export interface PaginatedGridProps<TData extends object, TValue = unknown> {
   pageSizeOptions?: number[]
   enableSearch?: boolean
   enableColumnToggle?: boolean
+  enableColumnFilters?: boolean
   enableGrouping?: boolean
+  flexColumnId?: string
   /** Show resize handles on column headers */
   enableColumnResizing?: boolean
+}
+
+const SELECT_COLUMN_SIZE = 40
+
+function isPaginatedData<TData extends object>(
+  data: TData[] | IPaginatedData<TData[]>,
+): data is IPaginatedData<TData[]> {
+  return !Array.isArray(data) && Array.isArray(data.items)
 }
 
 // ─────────────────────────────────────────────
@@ -218,18 +246,31 @@ function buildPageNumbers(current: number, total: number): (number | "…")[] {
 export function PaginatedGrid<TData extends object, TValue = unknown>({
   columns,
   data,
+  tableLoading = false,
+  heightRow,
+  widthRow,
+  showPagination = true,
+  removeBottomPadding = false,
+  onPaginationChange,
   onCellValueChange,
   onRowSelectionChange,
   groupableColumns = [],
   defaultPageSize = 10,
   pageSizeOptions = [5, 10, 20, 50],
-  enableSearch = true,
-  enableColumnToggle = true,
-  enableGrouping = true,
-  enableColumnResizing = true,
+  enableSearch = false,
+  enableColumnToggle = false,
+  enableColumnFilters = false,
+  enableGrouping = false,
+  flexColumnId = "name",
+  enableColumnResizing = false,
 }: PaginatedGridProps<TData, TValue>) {
 
   // ── state ──────────────────────────────────
+  const tableFrameRef = React.useRef<HTMLDivElement>(null)
+  const [tableFrameWidth, setTableFrameWidth] = React.useState(0)
+  const paginatedData = isPaginatedData(data) ? data : undefined
+  const tableData: TData[] = Array.isArray(data) ? data : data.items
+  const manualPagination = Boolean(paginatedData && onPaginationChange)
   const [sorting, setSorting]                   = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters]       = React.useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter]         = React.useState("")
@@ -262,7 +303,7 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
 
   // ── table instance ─────────────────────────
   const table = useReactTable({
-    data,
+    data: tableData,
     columns: wrappedColumns,
     state: {
       sorting, columnFilters, globalFilter,
@@ -278,39 +319,79 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
       setRowSelection(next)
       if (onRowSelectionChange) {
         const idxs = Object.keys(next).filter((k) => next[k]).map(Number)
-        onRowSelectionChange(idxs.map((i) => data[i]))
+        onRowSelectionChange(idxs.map((i) => tableData[i]).filter(Boolean))
       }
     },
     onColumnVisibilityChange: setColumnVisibility,
     onGroupingChange: setGrouping,
     onExpandedChange: setExpanded,
     onColumnSizingChange: setColumnSizing,
-    onPaginationChange: setPagination,
+    onPaginationChange: (updater) => {
+      const next = typeof updater === "function" ? updater(pagination) : updater
+      setPagination(next)
+      onPaginationChange?.(next.pageIndex + 1, next.pageSize)
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
     getGroupedRowModel: getGroupedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     enableRowSelection: true,
+    enableColumnFilters,
+    manualPagination,
+    pageCount: paginatedData?.totalPages,
     columnResizeMode: "onChange",
     groupedColumnMode: false,
   })
+
+  React.useEffect(() => {
+    const tableFrame = tableFrameRef.current
+    if (!tableFrame) return
+
+    const updateWidth = () => setTableFrameWidth(tableFrame.clientWidth)
+    updateWidth()
+
+    const resizeObserver = new ResizeObserver(updateWidth)
+    resizeObserver.observe(tableFrame)
+
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  React.useEffect(() => {
+    if (!paginatedData) return
+
+    setPagination((current) => ({
+      pageIndex: Math.max((paginatedData.page ?? current.pageIndex + 1) - 1, 0),
+      pageSize: paginatedData.pageSize ?? current.pageSize,
+    }))
+  }, [paginatedData?.page, paginatedData?.pageSize])
 
   // ── derived ────────────────────────────────
   const selectedCount = Object.values(rowSelection).filter(Boolean).length
   const pageCount     = Math.max(table.getPageCount(), 1)
   const currentPage   = pagination.pageIndex + 1
   const pageNumbers   = buildPageNumbers(currentPage, pageCount)
+  const totalRows = paginatedData?.totalItems ?? paginatedData?.totalCount ?? paginatedData?.total ?? table.getFilteredRowModel().rows.length
+  const tableHeight = heightRow ? heightRow * 11 : undefined
   const leafCols      = table.getAllLeafColumns().filter((c) => c.id !== "select")
+  const visibleLeafCols = table.getVisibleLeafColumns()
+  const fixedColumnsWidth = visibleLeafCols
+    .filter((column) => column.id !== flexColumnId)
+    .reduce((width, column) => width + column.getSize(), SELECT_COLUMN_SIZE)
+  const flexColumnBaseWidth = table.getColumn(flexColumnId)?.getSize() ?? 0
+  const flexColumnWidth = Math.max(flexColumnBaseWidth, tableFrameWidth - fixedColumnsWidth)
+  const tableWidth = Math.max(tableFrameWidth, fixedColumnsWidth + flexColumnWidth)
+  const getColumnWidth = (columnId: string, fallbackWidth: number) =>
+    columnId === flexColumnId ? flexColumnWidth : fallbackWidth
 
   // ── render ─────────────────────────────────
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full min-w-0 space-y-3">
 
       {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-2 justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 justify-between">
+        <div className="flex min-w-0 items-center gap-2 flex-wrap">
 
           {enableSearch && (
             <div className="relative">
@@ -356,7 +437,7 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
 
           {enableGrouping && groupableColumns.length > 0 && (
             <DropdownMenu>
@@ -409,14 +490,23 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
       </div>
 
       {/* ── Table ── */}
-      <div className="rounded-md border overflow-auto">
-        <Table style={{ width: table.getTotalSize(), tableLayout: "fixed" }}>
+      <TableWrapper
+        loading={tableLoading}
+        style={{
+          height: tableHeight,
+          width: widthRow,
+          ...(removeBottomPadding ? {} : { paddingBottom: 16 }),
+        }}
+      >
+      <div ref={tableFrameRef} className="h-full w-full max-w-full min-w-0 overflow-auto">
+        <Table style={{ width: tableWidth, tableLayout: "fixed" }}>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
+              <React.Fragment key={hg.id}>
+              <TableRow>
 
                 {/* Select-all */}
-                <TableHead className="w-10 relative shrink-0">
+                <TableHead style={{ width: SELECT_COLUMN_SIZE }} className="relative shrink-0">
                   <Checkbox
                     checked={
                       table.getIsAllPageRowsSelected()
@@ -433,12 +523,13 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
                 {hg.headers.map((header) => {
                   const sorted     = header.column.getIsSorted()
                   const isEditable = header.column.columnDef.meta?.editable
+                  const headerWidth = getColumnWidth(header.column.id, header.getSize())
 
                   return (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
-                      style={{ width: header.getSize(), position: "relative" }}
+                      style={{ width: headerWidth, position: "relative" }}
                       className="overflow-hidden"
                     >
                       <div
@@ -475,6 +566,39 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
                   )
                 })}
               </TableRow>
+
+              {enableColumnFilters && (
+                <TableRow>
+                  <TableHead style={{ width: SELECT_COLUMN_SIZE }}>
+                    <ListFilter className="h-3.5 w-3.5 text-muted-foreground" />
+                  </TableHead>
+
+                  {hg.headers.map((header) => {
+                    const filterValue = header.column.getFilterValue()
+
+                    return (
+                      <TableHead
+                        key={`${header.id}-filter`}
+                        style={{ width: getColumnWidth(header.column.id, header.getSize()) }}
+                        className="p-1"
+                      >
+                        {header.column.getCanFilter() ? (
+                          <Input
+                            value={String(filterValue ?? "")}
+                            onChange={(e) => {
+                              header.column.setFilterValue(e.target.value)
+                              setPagination((p) => ({ ...p, pageIndex: 0 }))
+                            }}
+                            placeholder={`Filter ${header.column.id}`}
+                            className="h-7 w-full px-2 text-xs"
+                          />
+                        ) : null}
+                      </TableHead>
+                    )
+                  })}
+                </TableRow>
+              )}
+              </React.Fragment>
             ))}
           </TableHeader>
 
@@ -509,7 +633,7 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
                 return (
                   <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
 
-                    <TableCell className="w-10">
+                    <TableCell style={{ width: SELECT_COLUMN_SIZE }}>
                       <Checkbox
                         checked={row.getIsSelected()}
                         disabled={!row.getCanSelect()}
@@ -521,7 +645,10 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        style={{ width: cell.column.getSize(), maxWidth: cell.column.getSize() }}
+                        style={{
+                          width: getColumnWidth(cell.column.id, cell.column.getSize()),
+                          maxWidth: getColumnWidth(cell.column.id, cell.column.getSize()),
+                        }}
                         className="overflow-hidden p-2"
                       >
                         {cell.getIsGrouped() ? (
@@ -555,22 +682,27 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
           </TableBody>
         </Table>
       </div>
+      </TableWrapper>
 
       {/* ── Footer ── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      {showPagination && <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
 
         {/* row count + page size */}
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span>
             {selectedCount > 0
-              ? `${selectedCount} of ${table.getFilteredRowModel().rows.length} row(s) selected`
-              : `${table.getFilteredRowModel().rows.length} row(s)`}
+              ? `${selectedCount} of ${totalRows} row(s) selected`
+              : `${totalRows} row(s)`}
           </span>
           <div className="flex items-center gap-1.5">
             <span className="whitespace-nowrap">Rows per page</span>
             <Select
               value={String(pagination.pageSize)}
-              onValueChange={(v) => setPagination({ pageIndex: 0, pageSize: Number(v) })}
+              onValueChange={(v) => {
+                const next = { pageIndex: 0, pageSize: Number(v) }
+                setPagination(next)
+                onPaginationChange?.(1, next.pageSize)
+              }}
             >
               <SelectTrigger className="h-7 w-16 text-xs">
                 <SelectValue />
@@ -624,7 +756,7 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
             </PaginationItem>
           </PaginationContent>
         </Pagination>
-      </div>
+      </div>}
     </div>
   )
 }

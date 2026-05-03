@@ -99,7 +99,7 @@ const DefaultMainLayout = (props: MainLayoutProps) => {
           <AppBreadcrumb />
         </div>
 
-        <div className="p-4 lg:p-6">
+        <div className="min-w-0 p-4 lg:p-6">
           <Outlet />
         </div>
       </SidebarInset>
