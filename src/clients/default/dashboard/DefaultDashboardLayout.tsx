@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useToggle } from "@/hooks/use-toggle";
 import { useState } from "react";
 
+
 const DefaultDashboardLayout = () => {
   const [result, setResult] = useState<string>("");
   const [value, setValue] = useState<(string | number)[]>([]);
@@ -87,7 +88,8 @@ const DefaultDashboardLayout = () => {
             <span className="text-blue-500 font-medium">{result}</span>
           </p>
         )}
-      </div>
+        
+      </div>   
     </div>
   );
 }

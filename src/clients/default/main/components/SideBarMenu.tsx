@@ -15,17 +15,13 @@ import {
 } from '@/components/ui/sidebar'
 import type { JwtPayload } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Kbd } from '@/components/ui/kbd'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MenuItem {
+export interface MenuItem {
   id: string
   label: string
   icon: ElementType
@@ -36,14 +32,47 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userDetails: JwtPayload | null
   menuItems: MenuItem[]
   handleMenuClick: (path: string) => void
+  // shortcutMap: path → label  e.g. { '/users': 'Ctrl+U' }
+  shortcutMap?: Record<string, string>
 }
 
-const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppSidebarProps) => {
-  const { pathname } = useLocation()
+// ─── ShortcutBadge ────────────────────────────────────────────────────────────
 
+const ShortcutBadge = ({ label }: { label: string }) => {
+  const parts = label.split('+')
+  return (
+    <span className="ml-auto flex items-center gap-0.5">
+      {parts.map((part, i) => (
+        <Kbd
+          key={i}
+          className={cn(
+            'inline-flex items-center justify-center',
+            'rounded border border-border bg-muted',
+            'px-1 py-px font-mono text-[10px] leading-none text-muted-foreground',
+            'shadow-[0_1px_0_0_hsl(var(--border))]',
+          )}
+        >
+          {part === 'Ctrl' ? '⌘' : part === 'Cmd' ? '⌘' : part}
+        </Kbd>
+      ))}
+    </span>
+  )
+}
+
+// ─── SideBarMenu ──────────────────────────────────────────────────────────────
+
+const SideBarMenu = ({
+  userDetails,
+  menuItems,
+  handleMenuClick,
+  shortcutMap = {},
+  ...props
+}: AppSidebarProps) => {
+  const { pathname } = useLocation()
 
   return (
     <Sidebar collapsible="icon" {...props}>
+
       {/* Header */}
       <SidebarHeader>
         <SidebarMenu>
@@ -68,12 +97,18 @@ const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppS
             <SidebarMenu>
               {menuItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === `/${item.path}`
 
-                console.log(pathname, item.path, isActive)
+                // ✅ Fix: normalise both sides so '/users' === '/users' always
+                const normPath    = `/${item.path}`.replace(/\/+/g, '/')
+                const isActive    =
+                  pathname === normPath ||
+                  pathname.startsWith(normPath + '/')
+
+                // shortcut badge for this item (undefined → no badge)
+                const shortcut = shortcutMap[normPath]
 
                 return (
-                  <SidebarMenuItem key={item.id} className='cursor-pointer!'>
+                  <SidebarMenuItem key={item.id} className="cursor-pointer!">
                     <SidebarMenuButton
                       tooltip={item.label}
                       isActive={isActive}
@@ -81,11 +116,12 @@ const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppS
                       className={cn(
                         'w-full transition-colors',
                         isActive &&
-                        "bg-sidebar-accent! text-sidebar-accent-foreground! font-medium shadow-md"
+                          'bg-sidebar-accent! text-sidebar-accent-foreground! font-medium shadow-md',
                       )}
                     >
                       <Icon className="size-4 shrink-0" />
-                      <span>{item.label}</span>
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {shortcut && <ShortcutBadge label={shortcut} />}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -106,22 +142,23 @@ const SideBarMenu = ({ userDetails, menuItems, handleMenuClick, ...props }: AppS
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg grayscale">
-                    {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
-                    <AvatarFallback className="rounded-lg">A </AvatarFallback>
+                    <AvatarFallback className="rounded-lg">
+                      {userDetails?.name?.[0]?.toUpperCase() ?? 'A'}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{userDetails?.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {userDetails?.email} arun.prajapati@punon.in
+                      {userDetails?.email}
                     </span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
     </Sidebar>
   )
 }

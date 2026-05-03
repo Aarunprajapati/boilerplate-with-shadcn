@@ -26,7 +26,6 @@ const HeaderNav = (props: IHeaderNavProps) => {
         {/* LEFT */}
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <h1 className="text-xl font-semibold">Dashboard</h1>
         </div>
 
         {/* RIGHT */}

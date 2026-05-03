@@ -1,41 +1,49 @@
-import { getUserDetailsFromToken } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
-import {  LayoutDashboard, User } from "lucide-react";
-import { RouterKeys } from "@/config/router/RouterKeys";
-import { SideBarMenu } from "@/clients";
-import type { Sidebar } from "@/components/ui/sidebar";
+import { LayoutDashboard, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
+import { SideBarMenu } from '@/clients'
+import { RouterKeys } from '@/config/router/RouterKeys'
+import type { Sidebar } from '@/components/ui/sidebar'
+import { getUserDetailsFromToken } from '@/lib/utils'
+import useKeyboardShortcuts from '@/hooks/use-HotKeysShortcuts'
 
-const SideBarMenuPage = ({ ...rest }: React.ComponentProps<typeof Sidebar>) => {
-  const navigate = useNavigate();
-  const userDetails = getUserDetailsFromToken();
+// ─── Nav items ────────────────────────────────────────────────────────────────
+// Defined outside the component so the array reference is stable.
 
-  const handleMenuClick = (path: string) => {
-    navigate(path);
-  };
-const menuItems = [
+const MENU_ITEMS = [
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    path: RouterKeys.DASHBOARD,
+    id:    'dashboard',
+    label: 'Dashboard',
+    icon:  LayoutDashboard,
+    path:  RouterKeys.DASHBOARD,   // e.g. 'dashboard'
   },
   {
-    id: "dashboard-alt",
-    label: "User",
-    icon: User,
-    path: RouterKeys.USER,
-  }
-];
+    id:    'user',
+    label: 'User',
+    icon:  User,
+    path:  RouterKeys.USER,        
+  },
+]
+
+// ─── SideBarMenuPage ──────────────────────────────────────────────────────────
+
+const SideBarMenuPage = ({ ...rest }: React.ComponentProps<typeof Sidebar>) => {
+  const navigate     = useNavigate()
+  const userDetails  = getUserDetailsFromToken()
+
+  const { ShortCutWithRoutes } = useKeyboardShortcuts()
+
+  const handleMenuClick = (path: string) => navigate(path)
 
   return (
     <SideBarMenu
       userDetails={userDetails}
-      menuItems={menuItems}
+      menuItems={MENU_ITEMS}
       handleMenuClick={handleMenuClick}
+      shortcutMap={ShortCutWithRoutes}  
       {...rest}
     />
-  );
-};
+  )
+}
 
-export default SideBarMenuPage;
+export default SideBarMenuPage
