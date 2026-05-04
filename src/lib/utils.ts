@@ -1,3 +1,4 @@
+import type { SelectOption } from "@/components/custom/AppSelect";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 // import dayjs from "dayjs"
@@ -38,4 +39,14 @@ export function getUserDetailsFromToken(){
     console.error("Invalid token", error);
     return null;
   }
+}
+
+
+export const enumToOptions = <T extends Record<string, string | number>>(
+  enumObj: T
+): SelectOption[] => {
+  return Object.values(enumObj).map((value) => ({
+    label: String(value),
+    value,
+  }))
 }

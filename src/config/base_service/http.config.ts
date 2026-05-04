@@ -13,4 +13,8 @@ export const APIS = {
     forgotPassword: '/auth/forgot-password',
     resetPassword: '/auth/update-password',
   },
+
+  Dropdown:{
+    getValues: '/dropdown/values'
+  }
 };
