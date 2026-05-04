@@ -67,6 +67,8 @@ import {
   ListFilter,
   X,
 } from "lucide-react"
+import CustomPagination from "./CustomPagination"
+import type { IPaginatedData } from "@/common/common.enum"
 
 // ─────────────────────────────────────────────
 // ColumnMeta — extend per-column ColumnDef
@@ -86,15 +88,6 @@ export interface PaginatedGridColumnMeta {
   editable?: boolean
 }
 
-export interface IPaginatedData<TItems> {
-  items: TItems
-  page?: number
-  pageSize?: number
-  totalPages?: number
-  totalItems?: number
-  totalCount?: number
-  total?: number
-}
 
 // Augment TanStack's ColumnMeta type so TypeScript is happy
 declare module "@tanstack/react-table" {
@@ -110,7 +103,7 @@ declare module "@tanstack/react-table" {
 
 export interface PaginatedGridProps<TData extends object, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[] | IPaginatedData<TData[]>
+  data:  IPaginatedData<unknown[]>
   tableLoading?: boolean
   heightRow?: number
   widthRow?: number | string
@@ -685,78 +678,11 @@ export function PaginatedGrid<TData extends object, TValue = unknown>({
       </TableWrapper>
 
       {/* ── Footer ── */}
-      {showPagination && <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-
-        {/* row count + page size */}
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span>
-            {selectedCount > 0
-              ? `${selectedCount} of ${totalRows} row(s) selected`
-              : `${totalRows} row(s)`}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span className="whitespace-nowrap">Rows per page</span>
-            <Select
-              value={String(pagination.pageSize)}
-              onValueChange={(v) => {
-                const next = { pageIndex: 0, pageSize: Number(v) }
-                setPagination(next)
-                onPaginationChange?.(1, next.pageSize)
-              }}
-            >
-              <SelectTrigger className="h-7 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {pageSizeOptions.map((s) => (
-                  <SelectItem key={s} value={String(s)} className="text-xs">{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {showPagination && (
+          <div className="">
+            <CustomPagination data={data} onPaginationChange={onPaginationChange} />
           </div>
-        </div>
-
-        {/* shadcn Pagination */}
-        <Pagination className="w-auto mx-0">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => { e.preventDefault(); table.previousPage() }}
-                aria-disabled={!table.getCanPreviousPage()}
-                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-
-            {pageNumbers.map((page, idx) =>
-              page === "…" ? (
-                <PaginationItem key={`ellipsis-${idx}`}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href="#"
-                    isActive={page === currentPage}
-                    onClick={(e:any) => { e.preventDefault(); table.setPageIndex((page as number) - 1) }}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            )}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e:any) => { e.preventDefault(); table.nextPage() }}
-                aria-disabled={!table.getCanNextPage()}
-                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>}
+        )}
     </div>
   )
 }

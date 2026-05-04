@@ -36,7 +36,6 @@ const SIDEBAR_WIDTH_MOBILE = '16rem';
 const AppBreadcrumb = () => {
   const matches = useMatches();
 
-  console.log(matches)
   // Filter to only routes that opted-in to breadcrumb via handle.breadCrumbLabel
   const crumbs = matches.filter(
     (match) => (match.handle as RouteHandle)?.breadCrumbLabel

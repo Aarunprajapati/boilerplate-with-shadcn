@@ -23,6 +23,12 @@ const MENU_ITEMS = [
     icon:  User,
     path:  RouterKeys.USER,        
   },
+  {
+    id:    'create-offer',
+    label: 'CreateOffer',
+    icon:  User,
+    path:  RouterKeys.CREATE_OFFER,        
+  },
 ]
 
 // ─── SideBarMenuPage ──────────────────────────────────────────────────────────

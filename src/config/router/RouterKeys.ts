@@ -17,4 +17,5 @@ export const RouterKeys = {
 
   USER: 'user',
   
+  CREATE_OFFER: 'create-offer'
 };

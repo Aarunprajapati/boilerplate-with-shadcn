@@ -22,3 +22,13 @@ export enum ESearchParams {
 }
 
 export const ApiTags = {};
+
+
+
+
+export interface IPaginatedData<T> {
+  total?: number;
+  page?: number;
+  items: T;
+  limit?: number;
+}

@@ -146,16 +146,15 @@ const columns: ColumnDef<Employee>[] = [
 const DefaultUserLayout = () => {
   const [tableData, setTableData] = React.useState<Employee[]>(INITIAL_DATA)
   const [selected, setSelected]   = React.useState<Employee[]>([])
-  const paginatedData = React.useMemo(
-    () => ({
-      items: tableData,
-      page: 1,
-      pageSize: 5,
-      totalItems: tableData.length,
-      totalPages: Math.ceil(tableData.length / 5),
-    }),
-    [tableData],
-  )
+ const paginatedData = React.useMemo(
+  () => ({
+    items: tableData,
+    page: 1,
+    limit: 10,   // ← add this
+    total: 12,
+  }),
+  [tableData],
+)
 
   /**
    * onCellValueChange
